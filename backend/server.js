@@ -16,6 +16,25 @@ const __dirname = path.resolve();
 // PORT should be assigned after calling dotenv.config() because we need to access the env variables. Didn't realize while recording the video. Sorry for the confusion.
 const PORT = process.env.PORT || 5000;
 
+// CORS configuration
+const allowedOrigins = process.env.CLIENT_URL 
+	? process.env.CLIENT_URL.split(',').map(url => url.trim())
+	: ["http://localhost:3000"];
+
+app.use((req, res, next) => {
+	const origin = req.headers.origin;
+	if (allowedOrigins.includes(origin) || !origin) {
+		res.setHeader("Access-Control-Allow-Origin", origin || allowedOrigins[0]);
+		res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+		res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+		res.setHeader("Access-Control-Allow-Credentials", "true");
+	}
+	if (req.method === "OPTIONS") {
+		return res.sendStatus(200);
+	}
+	next();
+});
+
 app.use(express.json()); // to parse the incoming requests with JSON payloads (from req.body)
 app.use(cookieParser());
 

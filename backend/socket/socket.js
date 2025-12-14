@@ -5,9 +5,22 @@ import express from "express";
 const app = express();
 
 const server = http.createServer(app);
+
+// Handle multiple origins for CORS (for Vercel preview URLs)
+const allowedOrigins = process.env.CLIENT_URL 
+	? process.env.CLIENT_URL.split(',').map(url => url.trim())
+	: ["http://localhost:3000"];
+
 const io = new Server(server, {
 	cors: {
-		origin: process.env.CLIENT_URL || "http://localhost:3000",
+		origin: (origin, callback) => {
+			// Allow requests with no origin (like mobile apps or curl requests) or if origin is in allowed list
+			if (!origin || allowedOrigins.includes(origin)) {
+				callback(null, true);
+			} else {
+				callback(new Error("Not allowed by CORS"));
+			}
+		},
 		methods: ["GET", "POST"],
 		credentials: true,
 	},
